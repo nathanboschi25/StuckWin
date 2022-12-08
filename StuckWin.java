@@ -1,4 +1,8 @@
+import java.io.File;
 import java.util.Scanner;
+import java.util.Arrays;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class StuckWin {
     static final Scanner input = new Scanner(System.in);
@@ -6,6 +10,8 @@ public class StuckWin {
     static final double PIECE_RADIUS = 0.35;
     static final double HEXAGON_RADIUS = 0.5;
     static final int DEFAULT_SPACE_NUMBER = 5;
+
+    File curCsvFile;
 
 
     enum Result {OK, BAD_COLOR, DEST_NOT_FREE, EMPTY_SRC, TOO_FAR, EXT_BOARD, EXIT}
@@ -494,9 +500,25 @@ public class StuckWin {
           StdDraw.show();
     }
 
+    void initCsvFile(){
+        //get all files in the current directory
+        File[] files = new File(".").listFiles();
+        //filter the files to only get the csv files
+        File[] csvFiles = Arrays.stream(files).filter(f -> f.getName().endsWith(".csv")).toArray(File[]::new);
+        int maxNum = 0;
+        // match the file name with the pattern to get higher number
+        for(File f : csvFiles){
+            Matcher m = Pattern.compile("StuckWin_(\\d+)\\.csv").matcher(f.getName());
+            if(m.matches()){
+                maxNum = Math.max(maxNum, Integer.parseInt(m.group(1)));
+            }
+        }
+        this.curCsvFile = new File("StuckWin_"+(maxNum+1)+".csv");
+    }
+
     public static void main(String[] args) {
       StuckWin jeu = new StuckWin();
-      
+
       switch (args[0]) {
         case "0":
           jeu.game(jeu);
