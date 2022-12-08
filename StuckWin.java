@@ -1,4 +1,6 @@
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -12,7 +14,6 @@ public class StuckWin {
     static final int DEFAULT_SPACE_NUMBER = 5;
 
     File curCsvFile;
-
 
     enum Result {OK, BAD_COLOR, DEST_NOT_FREE, EMPTY_SRC, TOO_FAR, EXT_BOARD, EXIT}
     enum ModeMvt {REAL, SIMU}
@@ -39,40 +40,40 @@ public class StuckWin {
      * @return enum {OK, BAD_COLOR, DEST_NOT_FREE, EMPTY_SRC, TOO_FAR, EXT_BOARD, EXIT} selon le déplacement
      */
     Result deplace(char couleur, String lcSource, String lcDest,  ModeMvt mode) {
-      if(lcDest.equals("q")) {
-        return Result.EXIT;
-      }
-      Result result = Result.TOO_FAR;
-      if(isOutOfBound(lcSource) || isOutOfBound(lcDest)) {
-        result = Result.EXT_BOARD;
-      }
-      int rowSrc = charToInt(lcSource.charAt(0));
-      int colSrc = Character.getNumericValue(lcSource.charAt(1));
-      int rowDest = charToInt(lcDest.charAt(0));
-      int colDest = Character.getNumericValue(lcDest.charAt(1));
-      char charSrc = this.state[rowSrc][colSrc];
-      char charDest = this.state[rowDest][colDest];
-      String[] possibleDest = possibleDests(couleur, rowSrc, colSrc);
-      if(charSrc == '-' || charDest == '-') {
-        result = Result.EXT_BOARD;
-      }else if(charDest != VIDE) {
-        result = Result.DEST_NOT_FREE;
-      }else if(charSrc == VIDE) {
-        result = Result.EMPTY_SRC;
-      }else if(charSrc != couleur) {
-        result = Result.BAD_COLOR;
-      }
-      for(int i = 0; i < possibleDest.length; i++) {
-        if(possibleDest[i].equals(lcDest)) {
-          result = Result.OK;
-          break;
+        if(lcDest.equals("q")) {
+            return Result.EXIT;
         }
-      }
-      if(result == Result.OK) {
-        this.state[rowDest][colDest] = charSrc;
-        this.state[rowSrc][colSrc] = VIDE;
-      }
-      return result;
+        Result result = Result.TOO_FAR;
+        if(isOutOfBound(lcSource) || isOutOfBound(lcDest)) {
+            result = Result.EXT_BOARD;
+        }
+        int rowSrc = charToInt(lcSource.charAt(0));
+        int colSrc = Character.getNumericValue(lcSource.charAt(1));
+        int rowDest = charToInt(lcDest.charAt(0));
+        int colDest = Character.getNumericValue(lcDest.charAt(1));
+        char charSrc = this.state[rowSrc][colSrc];
+        char charDest = this.state[rowDest][colDest];
+        String[] possibleDest = possibleDests(couleur, rowSrc, colSrc);
+        if(charSrc == '-' || charDest == '-') {
+            result = Result.EXT_BOARD;
+        }else if(charDest != VIDE) {
+            result = Result.DEST_NOT_FREE;
+        }else if(charSrc == VIDE) {
+            result = Result.EMPTY_SRC;
+        }else if(charSrc != couleur) {
+            result = Result.BAD_COLOR;
+        }
+        for(int i = 0; i < possibleDest.length; i++) {
+            if(possibleDest[i].equals(lcDest)) {
+                result = Result.OK;
+                break;
+            }
+        }
+        if(result == Result.OK) {
+            this.state[rowDest][colDest] = charSrc;
+            this.state[rowSrc][colSrc] = VIDE;
+        }
+        return result;
     }
 
     /**
@@ -81,11 +82,11 @@ public class StuckWin {
      * @return vrai si la case n'est pas dans le plateau de jeu, et faux si elle l'est
      */
     boolean isOutOfBound(String position) {
-      int i = charToInt(position.charAt(0));
-      int j = Character.getNumericValue(position.charAt(1));
-      boolean isIPositionOut = i < 0 || i >= BOARD_SIZE;
-      boolean isJPositionOut = j < 0 || j > BOARD_SIZE;
-      return isIPositionOut || isJPositionOut;
+        int i = charToInt(position.charAt(0));
+        int j = Character.getNumericValue(position.charAt(1));
+        boolean isIPositionOut = i < 0 || i >= BOARD_SIZE;
+        boolean isJPositionOut = j < 0 || j > BOARD_SIZE;
+        return isIPositionOut || isJPositionOut;
     }
 
     /**
@@ -94,7 +95,7 @@ public class StuckWin {
      * @return le nombre correspondant au caractère entré
      */
     int charToInt(char character) {
-      return (character - 'A');
+        return (character - 'A');
     }
 
     /**
@@ -103,7 +104,7 @@ public class StuckWin {
      * @return le caractère correspondant au nombre entré
      */
     char intToChar(int number) {
-      return (char)(number + 'A');
+        return (char)(number + 'A');
     }
 
     /**
@@ -115,39 +116,39 @@ public class StuckWin {
      * @return tableau des trois positions jouables par le pion (redondance possible sur les bords)
      */
     String[] possibleDests(char couleur, int idLettre, int idCol){
-      String[] result = new String[]{"", "", ""};
-      if(this.state[idLettre][idCol] != couleur) {
-        return result;
-      }
-      int orientation = (couleur == 'B' ? (-1) : 1);
-      for(int i = 0; i < 3; i++) {
-        int x = idCol+orientation*(int)Math.round(Math.cos(2*Math.PI*i/8.0+(Math.PI/2)));
-        int y = idLettre+orientation*(int)Math.round(Math.sin(2*Math.PI*i/8.0+(Math.PI/2)));
-        if(x >= 0 && y >= 0 && x < (BOARD_SIZE+1) && y < BOARD_SIZE && this.state[y][x] == VIDE) {
-          result[i] = "" + intToChar(y) + x;
+        String[] result = new String[]{"", "", ""};
+        if(this.state[idLettre][idCol] != couleur) {
+            return result;
         }
-      }
+        int orientation = (couleur == 'B' ? (-1) : 1);
+        for(int i = 0; i < 3; i++) {
+            int x = idCol+orientation*(int)Math.round(Math.cos(2*Math.PI*i/8.0+(Math.PI/2)));
+            int y = idLettre+orientation*(int)Math.round(Math.sin(2*Math.PI*i/8.0+(Math.PI/2)));
+            if(x >= 0 && y >= 0 && x < (BOARD_SIZE+1) && y < BOARD_SIZE && this.state[y][x] == VIDE) {
+                result[i] = "" + intToChar(y) + x;
+            }
+        }
 
-      return result;
+        return result;
     }
 
     void affiche() {
-      for(int i = this.state[0].length - 1; i > (-(this.state[0].length)); i--) {
-        StringBuilder line = new StringBuilder("");
-        int nbSpace = DEFAULT_SPACE_NUMBER;
-        for(int j = 0; j < this.state.length; j++) {
-          if((i + j) >= 0 && (i + j) < this.state[0].length && this.state[j][i+j] != '-') {
-            line = line.append(getStringPositionColorized(j, i+j));
-            nbSpace--;
-          }
+        for(int i = this.state[0].length - 1; i > (-(this.state[0].length)); i--) {
+            StringBuilder line = new StringBuilder("");
+            int nbSpace = DEFAULT_SPACE_NUMBER;
+            for(int j = 0; j < this.state.length; j++) {
+                if((i + j) >= 0 && (i + j) < this.state[0].length && this.state[j][i+j] != '-') {
+                    line = line.append(getStringPositionColorized(j, i+j));
+                    nbSpace--;
+                }
+            }
+            if(!line.toString().equals("")) {
+                for(int k = 0; k < nbSpace * 2; k++) {
+                    System.out.print(" ");
+                }
+                System.out.println(line);
+            }
         }
-        if(!line.toString().equals("")) {
-          for(int k = 0; k < nbSpace * 2; k++) {
-            System.out.print(" ");
-          }
-          System.out.println(line);
-        }
-      }
     }
 
     /**
@@ -159,16 +160,16 @@ public class StuckWin {
      * @return une chaîne de caractère correspondant à la postion de la case
      */
     String getStringPositionColorized(int i, int j) {
-      switch (this.state[i][j]) {
-        case '.':
-          return "" + ConsoleColors.BLACK + ConsoleColors.WHITE_BACKGROUND + intToChar(i) + j + ConsoleColors.RESET + "  ";
-        case 'B':
-          return "" + ConsoleColors.BLUE_BACKGROUND + intToChar(i) + j + ConsoleColors.RESET + "  ";
-        case 'R':
-          return "" + ConsoleColors.RED_BACKGROUND + intToChar(i) + j + ConsoleColors.RESET + "  ";
-        default:
-          return "";
-      }
+        switch (this.state[i][j]) {
+            case '.':
+                return "" + ConsoleColors.BLACK + ConsoleColors.WHITE_BACKGROUND + intToChar(i) + j + ConsoleColors.RESET + "  ";
+            case 'B':
+                return "" + ConsoleColors.BLUE_BACKGROUND + intToChar(i) + j + ConsoleColors.RESET + "  ";
+            case 'R':
+                return "" + ConsoleColors.RED_BACKGROUND + intToChar(i) + j + ConsoleColors.RESET + "  ";
+            default:
+                return "";
+        }
     }
 
     /**
@@ -176,16 +177,16 @@ public class StuckWin {
      * l'attribut d'état "state"
      */
     void affiche2() {
-      for(int i = this.state[0].length - 1; i > (-(this.state[0].length)); i--) {
-        for(int j = 0; j < this.state.length; j++) {
-          if((i + j) >= 0 && (i + j) < this.state[0].length && this.state[j][i+j] != '-') {
-            double[] position = getPieceCenter(j, i+j);
-            drawHexagon(position[0], position[1]);
-            drawCircle(position[0], position[1], PIECE_RADIUS, this.state[j][j+i]);
-            drawLabel(j, i+j, this.state[j][j+i]);
-          }
+        for(int i = this.state[0].length - 1; i > (-(this.state[0].length)); i--) {
+            for(int j = 0; j < this.state.length; j++) {
+                if((i + j) >= 0 && (i + j) < this.state[0].length && this.state[j][i+j] != '-') {
+                    double[] position = getPieceCenter(j, i+j);
+                    drawHexagon(position[0], position[1]);
+                    drawCircle(position[0], position[1], PIECE_RADIUS, this.state[j][j+i]);
+                    drawLabel(j, i+j, this.state[j][j+i]);
+                }
+            }
         }
-      }
     }
 
 
@@ -193,8 +194,8 @@ public class StuckWin {
      * Initialise la fenêtre de dans laquelle le jeu sera affiché
      */
     void initWindow() {
-      StdDraw.setCanvasSize(700, 700);
-      StdDraw.setScale(-SIZE/2, SIZE/2);
+        StdDraw.setCanvasSize(700, 700);
+        StdDraw.setScale(-SIZE/2, SIZE/2);
     }
 
     /**
@@ -206,12 +207,12 @@ public class StuckWin {
      * la position en y dans la fenêtre
      */
     double[] getPieceCenter(int idRow, int idCol) {
-      double[] position = new double[2];
-      double radius = HEXAGON_RADIUS;
-      position[0] = (idRow-3.0)*1.5*radius+(idCol-4.0)*1.5*radius;
-      position[1] = (idRow-3.0)*(-Math.sqrt(3)*radius/2)+(idCol-4.0)*(Math.sqrt(3)*radius/2);
+        double[] position = new double[2];
+        double radius = HEXAGON_RADIUS;
+        position[0] = (idRow-3.0)*1.5*radius+(idCol-4.0)*1.5*radius;
+        position[1] = (idRow-3.0)*(-Math.sqrt(3)*radius/2)+(idCol-4.0)*(Math.sqrt(3)*radius/2);
 
-      return position;
+        return position;
     }
 
     /**
@@ -220,37 +221,37 @@ public class StuckWin {
      * @param y la position verticale de la case à représenter
      */
     void drawHexagon(double x, double y) {
-      StdDraw.setPenColor(StdDraw.BLACK);
-      StdDraw.setPenRadius(0.0025);
-      for(int i = 0; i < 6; i++) {
-        double x1 = HEXAGON_RADIUS*Math.cos((2*Math.PI*i)/6)+x;
-        double y1 = HEXAGON_RADIUS*Math.sin((2*Math.PI*i)/6)+y;
-        double x2 = HEXAGON_RADIUS*Math.cos((2*Math.PI*(i+1))/6)+x;
-        double y2 = HEXAGON_RADIUS*Math.sin((2*Math.PI*(i+1))/6)+y;
-        StdDraw.line(x1, y1, x2, y2);
-      }
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.setPenRadius(0.0025);
+        for(int i = 0; i < 6; i++) {
+            double x1 = HEXAGON_RADIUS*Math.cos((2*Math.PI*i)/6)+x;
+            double y1 = HEXAGON_RADIUS*Math.sin((2*Math.PI*i)/6)+y;
+            double x2 = HEXAGON_RADIUS*Math.cos((2*Math.PI*(i+1))/6)+x;
+            double y2 = HEXAGON_RADIUS*Math.sin((2*Math.PI*(i+1))/6)+y;
+            StdDraw.line(x1, y1, x2, y2);
+        }
     }
 
     /**
-     * 
+     *
      * @param x
      * @param y
      * @param radius
      * @param color
      */
     void drawCircle(double x, double y, double radius, char color) {
-      switch (color) {
-        case 'B':
-          StdDraw.setPenColor(StdDraw.BLUE);
-          break;
-        case 'R':
-          StdDraw.setPenColor(StdDraw.RED);
-          break;
-        default:
-          StdDraw.setPenColor(StdDraw.WHITE);
-          break;
-      }
-      StdDraw.filledCircle(x, y, radius);
+        switch (color) {
+            case 'B':
+                StdDraw.setPenColor(StdDraw.BLUE);
+                break;
+            case 'R':
+                StdDraw.setPenColor(StdDraw.RED);
+                break;
+            default:
+                StdDraw.setPenColor(StdDraw.WHITE);
+                break;
+        }
+        StdDraw.filledCircle(x, y, radius);
     }
 
     /**
@@ -260,39 +261,39 @@ public class StuckWin {
      * @param color la couleur de la pièce
      */
     void drawLabel(int row, int col, char color) {
-      double[] position = getPieceCenter(row, col);
-      if(color == 'B' || color == 'R') {
-        StdDraw.setPenColor(StdDraw.WHITE);
-      }else {
-        StdDraw.setPenColor(StdDraw.BLACK);
-      }
-      StdDraw.text(position[0], position[1], "" + intToChar(row) + col);
+        double[] position = getPieceCenter(row, col);
+        if(color == 'B' || color == 'R') {
+            StdDraw.setPenColor(StdDraw.WHITE);
+        }else {
+            StdDraw.setPenColor(StdDraw.BLACK);
+        }
+        StdDraw.text(position[0], position[1], "" + intToChar(row) + col);
     }
 
     void drawLabelInformation(String info) {
-      StdDraw.setPenColor(StdDraw.BLACK);
-      StdDraw.text(0, BOARD_SIZE/2.0, info);
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.text(0, BOARD_SIZE/2.0, info);
     }
 
     /**
-     * 
+     *
      * @param x
      * @param y
      * @return
      */
     String getNearestPoint(double x, double y) {
-      String result = "A0";
-      for(int i = this.state[0].length - 1; i > (-(this.state[0].length)); i--) {
-        for(int j = 0; j < this.state.length; j++) {
-          if((i + j) >= 0 && (i + j) < this.state[0].length && this.state[j][i+j] != '-') {
-            double[] position = getPieceCenter(j, i+j);
-            if(Math.sqrt(Math.pow((position[0] - x), 2) + Math.pow((position[1] - y), 2)) <= 0.35) {
-              result = "" + intToChar(j) + (i + j);
+        String result = "A0";
+        for(int i = this.state[0].length - 1; i > (-(this.state[0].length)); i--) {
+            for(int j = 0; j < this.state.length; j++) {
+                if((i + j) >= 0 && (i + j) < this.state[0].length && this.state[j][i+j] != '-') {
+                    double[] position = getPieceCenter(j, i+j);
+                    if(Math.sqrt(Math.pow((position[0] - x), 2) + Math.pow((position[1] - y), 2)) <= 0.35) {
+                        result = "" + intToChar(j) + (i + j);
+                    }
+                }
             }
-          }
         }
-      }
-      return result;
+        return result;
     }
 
     /**
@@ -301,8 +302,8 @@ public class StuckWin {
      * @return tableau contenant la position de départ et la destination du pion à jouer.
      */
     String[] jouerIA(char couleur) {
-      // votre code ici. Supprimer la ligne ci-dessous.
-      throw new java.lang.UnsupportedOperationException("à compléter");
+        // votre code ici. Supprimer la ligne ci-dessous.
+        throw new java.lang.UnsupportedOperationException("à compléter");
     }
 
     /**
@@ -311,15 +312,15 @@ public class StuckWin {
      * @return tableau de deux chaînes {source,destination} du pion à jouer
      */
     String[] jouer(char couleur){
-      String src = "";
-      String dst = "";
-      System.out.println("Mouvement " + couleur);
+        String src = "";
+        String dst = "";
+        System.out.println("Mouvement " + couleur);
 
-      src = input.next();
-      dst = input.next();
-      System.out.println(src + "->" + dst);
+        src = input.next();
+        dst = input.next();
+        System.out.println(src + "->" + dst);
 
-      return new String[]{src, dst};
+        return new String[]{src, dst};
     }
 
     /**
@@ -340,55 +341,55 @@ public class StuckWin {
     }
 
     /**
-     * 
+     *
      * @return
      */
     String getSrc() {
-      String src = "";
-      double xMouse;
-      double yMouse;
+        String src = "";
+        double xMouse;
+        double yMouse;
 
-      while(src.equals("")) {
-        if(StdDraw.isMousePressed()) {
-          xMouse = StdDraw.mouseX();
-          yMouse = StdDraw.mouseY();
-          src = getNearestPoint(xMouse, yMouse);
+        while(src.equals("")) {
+            if(StdDraw.isMousePressed()) {
+                xMouse = StdDraw.mouseX();
+                yMouse = StdDraw.mouseY();
+                src = getNearestPoint(xMouse, yMouse);
+            }
         }
-      }
 
-      return src;
+        return src;
     }
 
     /**
-     * 
+     *
      * @param src
      * @return
      */
     String getDest(String src) {
-      String dest = "";
-      double xMouse;
-      double yMouse;
+        String dest = "";
+        double xMouse;
+        double yMouse;
 
-      while(dest.equals("")) {
-        StdDraw.clear();
-        affiche2();
-        xMouse = StdDraw.mouseX();
-        yMouse = StdDraw.mouseY();
-        if(!StdDraw.isMousePressed()) {
-          dest = getNearestPoint(xMouse, yMouse);
+        while(dest.equals("")) {
+            StdDraw.clear();
+            affiche2();
+            xMouse = StdDraw.mouseX();
+            yMouse = StdDraw.mouseY();
+            if(!StdDraw.isMousePressed()) {
+                dest = getNearestPoint(xMouse, yMouse);
+            }
+            int rowSrc = charToInt(src.charAt(0));
+            int colSrc = Character.getNumericValue(src.charAt(1));
+            double[] srcPos = getPieceCenter(rowSrc, colSrc);
+            drawCircle(srcPos[0], srcPos[1], PIECE_RADIUS + 0.05, VIDE);
+            drawLabel(rowSrc, colSrc, VIDE);
+            if(this.state[rowSrc][colSrc] != VIDE) {
+                drawCircle(xMouse, yMouse, PIECE_RADIUS, this.state[rowSrc][colSrc]);
+            }
+            StdDraw.show();
         }
-        int rowSrc = charToInt(src.charAt(0));
-        int colSrc = Character.getNumericValue(src.charAt(1));
-        double[] srcPos = getPieceCenter(rowSrc, colSrc);
-        drawCircle(srcPos[0], srcPos[1], PIECE_RADIUS + 0.05, VIDE);
-        drawLabel(rowSrc, colSrc, VIDE);
-        if(this.state[rowSrc][colSrc] != VIDE) {
-          drawCircle(xMouse, yMouse, PIECE_RADIUS, this.state[rowSrc][colSrc]);
-        }
-        StdDraw.show();
-      }
 
-      return dest;
+        return dest;
     }
 
     /**
@@ -397,110 +398,112 @@ public class StuckWin {
      * @return
      */
     char finPartie(char couleur){
-      int nbPossibleMvtTotal = 0;
-      for(int i = 0; i  < this.state.length; i++) {
-        for (int j = 0; j < this.state[i].length; j++) {
-          if(this.state[i][j] == couleur) {
-            nbPossibleMvtTotal += nbPossibleMvt(couleur, i, j);
-          }
+        int nbPossibleMvtTotal = 0;
+        for(int i = 0; i  < this.state.length; i++) {
+            for (int j = 0; j < this.state[i].length; j++) {
+                if(this.state[i][j] == couleur) {
+                    nbPossibleMvtTotal += nbPossibleMvt(couleur, i, j);
+                }
+            }
         }
-      }
 
-      return (nbPossibleMvtTotal == 0 ? couleur : 'N');
+        return (nbPossibleMvtTotal == 0 ? couleur : 'N');
     }
 
     /**
-     * 
+     *
      * @param color
      * @param idRow
      * @param idCol
      * @return
      */
     int nbPossibleMvt(char color, int idRow, int idCol) {
-      int nbPossibleMvt = 0;
-      String[] possibleDests;
+        int nbPossibleMvt = 0;
+        String[] possibleDests;
 
-      possibleDests = possibleDests(color, idRow, idCol);
-      for(int k = 0; k < possibleDests.length; k++) {
-        nbPossibleMvt += possibleDests[k].equals("") ? 0 : 1;
-      }
+        possibleDests = possibleDests(color, idRow, idCol);
+        for(int k = 0; k < possibleDests.length; k++) {
+            nbPossibleMvt += possibleDests[k].equals("") ? 0 : 1;
+        }
 
-      return nbPossibleMvt;
+        return nbPossibleMvt;
     }
 
-    void game(StuckWin jeu) {
-      String src = "";
-      String dest = "";
-      String[] reponse;
-      Result status;
-      char partie;
-      char curCouleur = jeu.joueurs[0];
-      char nextCouleur = jeu.joueurs[1];
-      char tmp;
-      int cpt = 0;
+    void gameTerminal(StuckWin jeu) {
+        String src = "";
+        String dest = "";
+        String[] reponse;
+        Result status;
+        char partie;
+        char curCouleur = jeu.joueurs[0];
+        char nextCouleur = jeu.joueurs[1];
+        char tmp;
+        int cpt = 0;
 
-      do {
-        jeu.affiche();
         do {
-          reponse = jeu.jouer(curCouleur);
-          src = reponse[0];
-          dest = reponse[1];
-          if("q".equals(src))
-            return;
-          status = jeu.deplace(curCouleur, src, dest, ModeMvt.REAL);
-          partie = jeu.finPartie(nextCouleur);
-          System.out.println("status : "+status + " partie : " + partie);
-        } while(status != Result.OK && partie=='N');
-        tmp = curCouleur;
-        curCouleur = nextCouleur;
-        nextCouleur = tmp;
-        cpt ++;
-      } while(partie =='N');
-      
-      System.out.println("Victoire : " + partie + " (" + (cpt/2) + " coups)");
+            jeu.affiche();
+            do {
+                reponse = jeu.jouer(curCouleur);
+                src = reponse[0];
+                dest = reponse[1];
+                if("q".equals(src))
+                    return;
+                status = jeu.deplace(curCouleur, src, dest, ModeMvt.REAL);
+                partie = jeu.finPartie(nextCouleur);
+                System.out.println("status : "+status + " partie : " + partie);
+                cscFileAppend(this.curCsvFile, curCouleur, src, dest, status);
+            } while(status != Result.OK && partie=='N');
+            tmp = curCouleur;
+            curCouleur = nextCouleur;
+            nextCouleur = tmp;
+            cpt ++;
+        } while(partie =='N');
+
+        System.out.println("Victoire : " + partie + " (" + (cpt/2) + " coups)");
     }
 
-    void game2(StuckWin jeu) {
-      String src = "";
-      String dest = "";
-      String[] reponse;
-      Result status;
-      char partie;
-      char curCouleur = jeu.joueurs[0];
-      char nextCouleur = jeu.joueurs[1];
-      char tmp;
-      int cpt = 0;
+    void gameGUI(StuckWin jeu) {
+        String src = "";
+        String dest = "";
+        String[] reponse;
+        Result status;
+        char partie;
+        char curCouleur = jeu.joueurs[0];
+        char nextCouleur = jeu.joueurs[1];
+        char tmp;
+        int cpt = 0;
 
-      StdDraw.enableDoubleBuffering();
-          jeu.initWindow();
-          do {
+        StdDraw.enableDoubleBuffering();
+        jeu.initWindow();
+        do {
             do {
-              StdDraw.clear();
-              jeu.affiche2();
-              jeu.drawLabelInformation("Au tour de : " + (curCouleur == 'B' ? "Bleu" : "Rouge"));
-              StdDraw.show();
-              reponse = jeu.jouer2(curCouleur);
-              src = reponse[0];
-              dest = reponse[1];
-              status = jeu.deplace(curCouleur, src, dest, ModeMvt.REAL);
-              partie = jeu.finPartie(nextCouleur);
-              jeu.drawLabelInformation("status : "+status + " partie : " + partie);
-              StdDraw.show();
-              StdDraw.pause(500);
+                StdDraw.clear();
+                jeu.affiche2();
+                jeu.drawLabelInformation("Au tour de : " + (curCouleur == 'B' ? "Bleu" : "Rouge"));
+                StdDraw.show();
+                reponse = jeu.jouer2(curCouleur);
+                src = reponse[0];
+                dest = reponse[1];
+                status = jeu.deplace(curCouleur, src, dest, ModeMvt.REAL);
+                partie = jeu.finPartie(nextCouleur);
+                jeu.drawLabelInformation("status : "+status + " partie : " + partie);
+                cscFileAppend(this.curCsvFile, curCouleur, src, dest, status);
+                StdDraw.show();
+                StdDraw.pause(500);
             } while(status != Result.OK && partie=='N');
             tmp = curCouleur;
             curCouleur = nextCouleur;
             nextCouleur = tmp;
             cpt++;
-          } while(partie =='N');
-  
-          StdDraw.clear();
-          jeu.affiche2();
-          jeu.drawLabelInformation("Victoire : " + partie + " (" + (cpt/2) + " coups)");
-          StdDraw.show();
+        } while(partie =='N');
+
+        StdDraw.clear();
+        jeu.affiche2();
+        jeu.drawLabelInformation("Victoire : " + partie + " (" + (cpt/2) + " coups)");
+        StdDraw.show();
     }
 
-    void initCsvFile(){
+    void initCsvFile() {
         //get all files in the current directory
         File[] files = new File(".").listFiles();
         //filter the files to only get the csv files
@@ -513,22 +516,43 @@ public class StuckWin {
                 maxNum = Math.max(maxNum, Integer.parseInt(m.group(1)));
             }
         }
-        this.curCsvFile = new File("StuckWin_"+(maxNum+1)+".csv");
+        String filename;
+
+        if(maxNum > 8){
+            filename = ("StuckWin_"+(maxNum+1)+".csv");}
+        else{
+            filename = ("StuckWin_0"+(maxNum+1)+".csv");}
+
+        this.curCsvFile = new File(filename);
+        System.out.println("Le jeu est lancé ! Vous trouverez la trace de cette partie dans le fichier " + filename);
+
+        try(FileWriter curCsvFileEditor = new FileWriter(this.curCsvFile, true)) {
+            curCsvFileEditor.append("color,start,dest,result\n");
+        }catch (Exception e){
+            System.out.println(e);
+        }
+    }
+
+    void cscFileAppend (File file, char color, String start, String dest, Result result) {
+        try(FileWriter curCsvFileEditor = new FileWriter(file, true)) {
+            curCsvFileEditor.append("" + color + "," + start + "," + dest + "," + result + "\n");
+        }catch (Exception e){
+            System.out.println(e);
+        }
     }
 
     public static void main(String[] args) {
-      StuckWin jeu = new StuckWin();
-
-      switch (args[0]) {
-        case "0":
-          jeu.game(jeu);
-          break;
-        case "1":
-            jeu.game2(jeu);
-          break;
-        default:
-          break;
-      }
-
+        StuckWin jeu = new StuckWin();
+        jeu.initCsvFile();
+        switch (args[0]) {
+            case "0":
+                jeu.gameTerminal(jeu);
+                break;
+            case "1":
+                jeu.gameGUI(jeu);
+                break;
+            default:
+                break;
+        }
     }
 }
