@@ -1,10 +1,22 @@
+/**
+ * Université de Franche-Comté, IUT Nord Franche-Comté, 90000 Belfort
+ * Année Universitaire 2022-2023
+ * SAE S1 01 / Groupe 29
+ * Nathan BOSCHI [nathan.boschi@edu.univ-fcomte.fr]
+ * Jessy MOUGAMMADALY [jessy.mougammadaly@edu.univ-fcomte.fr]
+ */
+
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Collections;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.time.LocalDateTime;
 
 public class StuckWin {
     static final Scanner input = new Scanner(System.in);
@@ -14,9 +26,12 @@ public class StuckWin {
     static final int DEFAULT_SPACE_NUMBER = 5;
 
     File curCsvFile;
+    int displayMode = 2;
 
     enum Result {OK, BAD_COLOR, DEST_NOT_FREE, EMPTY_SRC, TOO_FAR, EXT_BOARD, EXIT}
+
     enum ModeMvt {REAL, SIMU}
+
     final char[] joueurs = {'B', 'R'};
     static final int SIZE = 8;
     static final char VIDE = '.';
@@ -77,9 +92,10 @@ public class StuckWin {
     }
 
     /**
-     * Vérifie si la position passée en paramètre n'est pas dans les limites de la zones de jeu
+     * Vérifie si la position passée en paramètre n'est pas dans les limites de la zone de jeu
+     *
      * @param position case dont la position va être testée
-     * @return vrai si la case n'est pas dans le plateau de jeu, et faux si elle l'est
+     * @return vrai si la case n'est pas dans le plateau de jeu, faux si elle l'est.
      */
     boolean isOutOfBound(String position) {
         int i = charToInt(position.charAt(0));
@@ -122,9 +138,9 @@ public class StuckWin {
         }
         int orientation = (couleur == 'B' ? (-1) : 1);
         for(int i = 0; i < 3; i++) {
-            int x = idCol+orientation*(int)Math.round(Math.cos(2*Math.PI*i/8.0+(Math.PI/2)));
-            int y = idLettre+orientation*(int)Math.round(Math.sin(2*Math.PI*i/8.0+(Math.PI/2)));
-            if(x >= 0 && y >= 0 && x < (BOARD_SIZE+1) && y < BOARD_SIZE && this.state[y][x] == VIDE) {
+            int x = idCol + orientation * (int) Math.round(Math.cos(2 * Math.PI * i / 8.0 + (Math.PI / 2)));
+            int y = idLettre + orientation * (int) Math.round(Math.sin(2 * Math.PI * i / 8.0 + (Math.PI / 2)));
+            if (x >= 0 && y >= 0 && x < (BOARD_SIZE + 1) && y < BOARD_SIZE && this.state[y][x] == VIDE) {
                 result[i] = "" + intToChar(y) + x;
             }
         }
@@ -132,18 +148,22 @@ public class StuckWin {
         return result;
     }
 
+    /**
+     * Affiche le plateau de jeu dans la configuration portée par
+     * l'attribut d'état "state" dans la console
+     */
     void affiche() {
-        for(int i = this.state[0].length - 1; i > (-(this.state[0].length)); i--) {
+        for (int i = this.state[0].length - 1; i > (-(this.state[0].length)); i--) {
             StringBuilder line = new StringBuilder("");
             int nbSpace = DEFAULT_SPACE_NUMBER;
-            for(int j = 0; j < this.state.length; j++) {
-                if((i + j) >= 0 && (i + j) < this.state[0].length && this.state[j][i+j] != '-') {
-                    line = line.append(getStringPositionColorized(j, i+j));
+            for (int j = 0; j < this.state.length; j++) {
+                if ((i + j) >= 0 && (i + j) < this.state[0].length && this.state[j][i + j] != '-') {
+                    line = line.append(getStringPositionColorized(j, i + j));
                     nbSpace--;
                 }
             }
-            if(!line.toString().equals("")) {
-                for(int k = 0; k < nbSpace * 2; k++) {
+            if (!line.toString().equals("")) {
+                for (int k = 0; k < nbSpace * 2; k++) {
                     System.out.print(" ");
                 }
                 System.out.println(line);
@@ -174,7 +194,8 @@ public class StuckWin {
 
     /**
      * Affiche le plateau de jeu dans la configuration portée par
-     * l'attribut d'état "state"
+     * l'attribut d'état "state" dans une interface graphique créé
+     * à partir de StdDraw
      */
     void affiche2() {
         for(int i = this.state[0].length - 1; i > (-(this.state[0].length)); i--) {
@@ -233,11 +254,13 @@ public class StuckWin {
     }
 
     /**
+     * Dessine un cercle de couleur dans l'interface graphique à une position
+     * de centre (x, y)
      *
-     * @param x
-     * @param y
-     * @param radius
-     * @param color
+     * @param x      Réel représentant la coordonnée x du centre du cercle
+     * @param y      Réel représentant la coordonnée y du centre du cercle
+     * @param radius Réel représentant le rayon du cercle
+     * @param color  Couleur de remplissage du cercle
      */
     void drawCircle(double x, double y, double radius, char color) {
         switch (color) {
@@ -262,24 +285,30 @@ public class StuckWin {
      */
     void drawLabel(int row, int col, char color) {
         double[] position = getPieceCenter(row, col);
-        if(color == 'B' || color == 'R') {
+        if (color == 'B' || color == 'R') {
             StdDraw.setPenColor(StdDraw.WHITE);
-        }else {
+        } else {
             StdDraw.setPenColor(StdDraw.BLACK);
         }
         StdDraw.text(position[0], position[1], "" + intToChar(row) + col);
     }
 
+    /**
+     * Affiche sur le plateau les informations utiles au bon déroulement du jeu.
+     *
+     * @param info
+     */
     void drawLabelInformation(String info) {
         StdDraw.setPenColor(StdDraw.BLACK);
-        StdDraw.text(0, BOARD_SIZE/2.0, info);
+        StdDraw.text(0, BOARD_SIZE / 2.0, info);
     }
 
     /**
+     * Récupère la pièce la plus proche des coordonnées (x, y)
      *
      * @param x
      * @param y
-     * @return
+     * @return Chaine de caractères représentant la pièce.
      */
     String getNearestPoint(double x, double y) {
         String result = "A0";
@@ -307,42 +336,27 @@ public class StuckWin {
     }
 
     /**
-     * gère le jeu en fonction du joueur/couleur
-     * @param couleur
-     * @return tableau de deux chaînes {source,destination} du pion à jouer
-     */
-    String[] jouer(char couleur){
-        String src = "";
-        String dst = "";
-        System.out.println("Mouvement " + couleur);
-
-        src = input.next();
-        dst = input.next();
-        System.out.println(src + "->" + dst);
-
-        return new String[]{src, dst};
-    }
-
-    /**
-     * gère le jeu en fonction du joueur/couleur
-     * @param couleur
-     * @return tableau de deux chaînes {source,destination} du pion à jouer
-     */
-    String[] jouer2(char couleur){
-        String src = "";
-        String dst = "";
-        System.out.println("Mouvement " + couleur);
-
-        src = getSrc();
-        dst = getDest(src);
-        System.out.println(src + "->" + dst);
-
-        return new String[]{src, dst};
-    }
-
-    /**
+     * Gère le jeu en fonction du joueur/couleur
      *
-     * @return
+     * @param couleur
+     * @return tableau de deux chaînes {source,destination} du pion à jouer
+     */
+    String[] jouer(char couleur) {
+        String src = "";
+        String dst = "";
+        System.out.println("Mouvement " + couleur);
+
+        src = displayMode == 1 ? input.next() : getSrc();
+        dst = displayMode == 1 ? input.next() : getDest(src);
+        System.out.println(src + "->" + dst);
+
+        return new String[]{src, dst};
+    }
+
+    /**
+     * Récupère la pièce source en fonction du clic initial du joueur.
+     *
+     * @return Chaine de caractères (pièce source)
      */
     String getSrc() {
         String src = "";
@@ -361,9 +375,11 @@ public class StuckWin {
     }
 
     /**
+     * Récupère la pièce de destination en fonction du relâchement du clic
+     * Dessine la trace de la pièce prise en source
      *
-     * @param src
-     * @return
+     * @param src Pièce source (String)
+     * @return Pièce destination (String)
      */
     String getDest(String src) {
         String dest = "";
@@ -393,7 +409,8 @@ public class StuckWin {
     }
 
     /**
-     * retourne 'R' ou 'B' si vainqueur, 'N' si partie pas finie
+     * Retourne 'R' ou 'B' si vainqueur, 'N' si la partie n'est pas terminée.
+     *
      * @param couleur
      * @return
      */
@@ -411,24 +428,30 @@ public class StuckWin {
     }
 
     /**
+     * Retourne le nombre de mouvements possibles en fonction de la pièce source.
      *
-     * @param color
-     * @param idRow
-     * @param idCol
-     * @return
+     * @param color Couleur du joueur actuel
+     * @param idRow Identifiant de la ligne dans state
+     * @param idCol Identifiant de la col. dans state
+     * @return Nombre de mouvements possibles (int)
      */
     int nbPossibleMvt(char color, int idRow, int idCol) {
         int nbPossibleMvt = 0;
         String[] possibleDests;
 
         possibleDests = possibleDests(color, idRow, idCol);
-        for(int k = 0; k < possibleDests.length; k++) {
+        for (int k = 0; k < possibleDests.length; k++) {
             nbPossibleMvt += possibleDests[k].equals("") ? 0 : 1;
         }
 
         return nbPossibleMvt;
     }
 
+    /**
+     * Lance une partie en mode Console.
+     *
+     * @param jeu Instance de StuckWin
+     */
     void gameTerminal(StuckWin jeu) {
         String src = "";
         String dest = "";
@@ -446,22 +469,27 @@ public class StuckWin {
                 reponse = jeu.jouer(curCouleur);
                 src = reponse[0];
                 dest = reponse[1];
-                if("q".equals(src))
+                if ("q".equals(src))
                     return;
                 status = jeu.deplace(curCouleur, src, dest, ModeMvt.REAL);
                 partie = jeu.finPartie(nextCouleur);
-                System.out.println("status : "+status + " partie : " + partie);
-                cscFileAppend(this.curCsvFile, curCouleur, src, dest, status);
-            } while(status != Result.OK && partie=='N');
+                System.out.println(statusStringGenerator(src, dest, status, partie));
+                csvFileAppend(this.curCsvFile, curCouleur, src, dest, status);
+            } while (status != Result.OK && partie == 'N');
             tmp = curCouleur;
             curCouleur = nextCouleur;
             nextCouleur = tmp;
-            cpt ++;
-        } while(partie =='N');
+            cpt++;
+        } while (partie == 'N');
 
-        System.out.println("Victoire : " + partie + " (" + (cpt/2) + " coups)");
+        System.out.println(victoryStringGenerator(partie, cpt));
     }
 
+    /**
+     * Lance une partie en mode Graphique via StdDraw.
+     *
+     * @param jeu Instance de StuckWin
+     */
     void gameGUI(StuckWin jeu) {
         String src = "";
         String dest = "";
@@ -481,78 +509,233 @@ public class StuckWin {
                 jeu.affiche2();
                 jeu.drawLabelInformation("Au tour de : " + (curCouleur == 'B' ? "Bleu" : "Rouge"));
                 StdDraw.show();
-                reponse = jeu.jouer2(curCouleur);
+                reponse = jeu.jouer(curCouleur);
                 src = reponse[0];
                 dest = reponse[1];
                 status = jeu.deplace(curCouleur, src, dest, ModeMvt.REAL);
                 partie = jeu.finPartie(nextCouleur);
-                jeu.drawLabelInformation("status : "+status + " partie : " + partie);
-                cscFileAppend(this.curCsvFile, curCouleur, src, dest, status);
+                jeu.drawLabelInformation(statusStringGenerator(src, dest, status, partie));
+                csvFileAppend(this.curCsvFile, curCouleur, src, dest, status);
                 StdDraw.show();
                 StdDraw.pause(500);
-            } while(status != Result.OK && partie=='N');
+            } while (status != Result.OK && partie == 'N');
             tmp = curCouleur;
             curCouleur = nextCouleur;
             nextCouleur = tmp;
             cpt++;
-        } while(partie =='N');
+        } while (partie == 'N');
 
         StdDraw.clear();
         jeu.affiche2();
-        jeu.drawLabelInformation("Victoire : " + partie + " (" + (cpt/2) + " coups)");
+        jeu.drawLabelInformation(victoryStringGenerator(partie, cpt));
         StdDraw.show();
     }
 
-    void initCsvFile() {
+    /**
+     * Sélectionne la méthode à appeler en fonction du mode de jeu choisi pour
+     * lancer une partie.
+     *
+     * @param jeu         Instance de StuckWin
+     * @param displayMode Mode de jeu (1: console, 2: graphique)
+     */
+    void runGame(StuckWin jeu, int displayMode) {
+        this.displayMode = displayMode;
+        if (displayMode == 1) {
+            gameTerminal(jeu);
+        } else {
+            gameGUI(jeu);
+        }
+    }
+
+    /**
+     * Initialise un nouveau fichier trace (.csv) avec entêtes et commentaires.
+     *
+     * @param displayMode Mode de jeu (1: console, 2: graphique)
+     */
+    void initCsvFile(int displayMode) {
         //get all files in the current directory
         File[] files = new File(".").listFiles();
         //filter the files to only get the csv files
         File[] csvFiles = Arrays.stream(files).filter(f -> f.getName().endsWith(".csv")).toArray(File[]::new);
         int maxNum = 0;
         // match the file name with the pattern to get higher number
-        for(File f : csvFiles){
+        for (File f : csvFiles) {
             Matcher m = Pattern.compile("StuckWin_(\\d+)\\.csv").matcher(f.getName());
-            if(m.matches()){
+            if (m.matches()) {
                 maxNum = Math.max(maxNum, Integer.parseInt(m.group(1)));
             }
         }
         String filename;
 
-        if(maxNum > 8){
-            filename = ("StuckWin_"+(maxNum+1)+".csv");}
-        else{
-            filename = ("StuckWin_0"+(maxNum+1)+".csv");}
+        if (maxNum > 8) {
+            filename = ("StuckWin_" + (maxNum + 1) + ".csv");
+        } else {
+            filename = ("StuckWin_0" + (maxNum + 1) + ".csv");
+        }
 
         this.curCsvFile = new File(filename);
         System.out.println("Le jeu est lancé ! Vous trouverez la trace de cette partie dans le fichier " + filename);
 
-        try(FileWriter curCsvFileEditor = new FileWriter(this.curCsvFile, true)) {
+
+        try (FileWriter curCsvFileEditor = new FileWriter(this.curCsvFile, true)) {
+            String gameTypeStr = "";
+            switch (displayMode) {
+                case 1:
+                    gameTypeStr = "Terminal";
+                    break;
+                case 2:
+                    gameTypeStr = "Graphical";
+                    break;
+                default:
+                    break;
+            }
+            curCsvFileEditor.append("# StuckWin Game\n");
+            curCsvFileEditor.append("# Nathan BOSCHI, Jessy MOUGAMMADALY / Groupe 29\n");
+            curCsvFileEditor.append("# Game played with " + gameTypeStr + " interface (" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + ")\n");
             curCsvFileEditor.append("color,start,dest,result\n");
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e);
         }
     }
 
-    void cscFileAppend (File file, char color, String start, String dest, Result result) {
-        try(FileWriter curCsvFileEditor = new FileWriter(file, true)) {
+    /**
+     * Ajoute une ligne au fichier trace (.csv) de la partie actuelle.
+     *
+     * @param file   Fichier à écrire
+     * @param color  Couleur du joueur actuel (char)
+     * @param start  Pièce source (String)
+     * @param dest   Pièce dest. (String)
+     * @param result Etat du mouvement
+     */
+    void csvFileAppend(File file, char color, String start, String dest, Result result) {
+        try (FileWriter curCsvFileEditor = new FileWriter(file, true)) {
             curCsvFileEditor.append("" + color + "," + start + "," + dest + "," + result + "\n");
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e);
         }
     }
+
+    /**
+     * Convertit un fichier en liste de tableaux.
+     * Chaque ligne se transforme en String[] et est ajoutée à la liste.
+     *
+     * @param file Fichier à convertir
+     * @return List<String [ ]>
+     */
+    List<String[]> csvToArray(File file) {
+        if (file.exists() && file.getName().startsWith("StuckWin")) {
+            try (Scanner fileScanner = new Scanner(file);) {
+                List<String[]> csvArray = new ArrayList<>();
+                while (fileScanner.hasNextLine()) {
+                    String line = fileScanner.nextLine();
+                    if (line.equals("color,start,dest,result") || line.startsWith("#"))
+                        continue;
+                    csvArray.add(line.split(","));
+                }
+                return csvArray;
+            } catch (Exception e) {
+                System.out.println(e);
+                return Collections.emptyList();
+            }
+        } else {
+            System.out.println("E : Le fichier entré en paramètre est inexistant ou n'est pas un fichier de trace StuckWin.");
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Joue un fichier trace dans l'interface graphique.
+     *
+     * @param file Fichier trace à jouer (StuckWin_XX.csv)
+     */
+    void csvFilePlay(File file) {
+        StdDraw.enableDoubleBuffering();
+        initWindow();
+
+        List<String[]> turnList = csvToArray(file);
+        int cpt = 0;
+        char partie = 'N';
+        Result status = Result.OK;
+
+        for (String[] turn : turnList) {
+            StdDraw.clear();
+            drawLabelInformation(statusStringGenerator(turn[1], turn[2], status, partie));
+            affiche2();
+            StdDraw.pause(10);
+            StdDraw.show();
+            status = deplace(turn[0].charAt(0), turn[1], turn[2], ModeMvt.REAL);
+            if (status == Result.OK) {
+                cpt++;
+            }
+        }
+
+        partie = turnList.get(turnList.size() - 1)[0].charAt(0);
+        partie = (partie == 'B') ? 'R' : 'B';
+        StdDraw.clear();
+        drawLabelInformation(victoryStringGenerator(partie, cpt));
+        affiche2();
+        StdDraw.show();
+    }
+
+    /**
+     * Crée un String contenant l'état de la partie.
+     *
+     * @param src    Case source
+     * @param dest   Case dest.
+     * @param status Status déplacement
+     * @param partie Status partie (N, B, R)
+     * @return String destiné à être affichée.
+     */
+    String statusStringGenerator(String src, String dest, Result status, char partie) {
+        return src + " -> " + dest + " / Statut : " + status + ", Etat de la Partie : " + partie;
+    }
+
+    /**
+     * Crée un String contenant l'état final de la partie.
+     *
+     * @param partie Status partie (N, B, R)
+     * @param cmpt   Nombre de coups
+     * @return String destiné à être affichée.
+     */
+    String victoryStringGenerator(char partie, int cmpt) {
+        return "Victoire : " + partie + " (" + (cmpt / 2) + " coups)";
+    }
+
+    /**
+     * Affiche l'aide du jeu.
+     */
+    void printGameHelp() {
+        System.out.println("StuckWin Game");
+        System.out.println("java StuckWin [gameMode] [csvFile] :");
+        System.out.println("\t-> [gameMode] (1: Console, 2: Graphical, 3: CSV File Playing, default: Graphical)");
+        System.out.println("\t-> [csvFile] (si gameMode = 3) Trace à jouer au format 'StuckWin_XX.csv'");
+    }
+
 
     public static void main(String[] args) {
         StuckWin jeu = new StuckWin();
-        jeu.initCsvFile();
-        switch (args[0]) {
-            case "0":
-                jeu.gameTerminal(jeu);
-                break;
-            case "1":
-                jeu.gameGUI(jeu);
-                break;
-            default:
-                break;
+        String arg = args.length > 0 ? args[0] : "2";
+        if (arg.equals("--help")) {
+            jeu.printGameHelp();
+        } else {
+            switch (Integer.parseInt(arg)) {
+                case 1:
+                    jeu.initCsvFile(1);
+                    jeu.runGame(jeu, 1);
+                    break;
+                case 2:
+                    jeu.initCsvFile(2);
+                    jeu.runGame(jeu, 2);
+                    break;
+                case 3:
+                    if (!args[1].isBlank()) {
+                        File fileToPlay = new File(args[1]);
+                        jeu.csvFilePlay(fileToPlay);
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }
