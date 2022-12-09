@@ -661,7 +661,7 @@ public class StuckWin {
             StdDraw.clear();
             drawLabelInformation(statusStringGenerator(turn[1], turn[2], status, partie));
             affiche2();
-            StdDraw.pause(10);
+            StdDraw.pause(1000);
             StdDraw.show();
             status = deplace(turn[0].charAt(0), turn[1], turn[2], ModeMvt.REAL);
             if (status == Result.OK) {
