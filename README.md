@@ -10,15 +10,15 @@ javac StdDraw.java ConsoleColors.java StuckWin.java
 
 To run StuckWin, here is a small documentation :
 
-### To get help :
+### To get help
 ```bash
 java StuckWin --help
 ```
 ```java
-StuckWin Game
-java StuckWin [gameMode] [csvFile] :
-	-> [gameMode] // (1: Terminal, 2: Graphical, 3: CSV File Playing, default: Graphical)
-	-> [csvFile] // (if gameMode = 3) // Trace to play in 'StuckWin_XX.csv' format.
+> StuckWin Game
+> java StuckWin [gameMode] [csvFile] :
+> 	 -> [gameMode] // (1: Terminal, 2: Graphical, 3: CSV File Playing, default: Graphical)
+> 	 -> [csvFile] // (if gameMode = 3) // Trace to play in 'StuckWin_XX.csv' format.
 ```
 
 ### Play with terminal Interface
