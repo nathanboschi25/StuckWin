@@ -5,7 +5,7 @@ StuckWin is a mini-game where the goal is to get stuck. The first one to stop pl
 ## Instructions for use
 To play the game, you first need to download the archive and compile all .java files.
 ```bash
-javac *.java
+javac StdDraw.java ConsoleColors.java StuckWin.java
 ```
 
 To run StuckWin, here is a small documentation :
