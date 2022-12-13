@@ -1,6 +1,6 @@
 # StuckWin
 StuckWin is a mini-game where the goal is to get stuck. The first one to stop playing wins!
-
+![](img/stuckgui.png)
 
 ## Instructions for use
 To play the game, you first need to download the archive and compile all .java files. To run StuckWin, here is a small documentation :
