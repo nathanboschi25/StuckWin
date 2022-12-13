@@ -22,7 +22,7 @@ java StuckWin 1
 ```
 Your entire game will be saved in a trace file named "StuckWin_XX.txt". To find the exact name of the file corresponding to your current game, refer to what the terminal tells you.
 
-### Play with graphical Interface
+### Play with graphical Interface (default)
 ```bash
 java StuckWin 2
 ```
