@@ -620,7 +620,7 @@ public class StuckWin {
      * Chaque ligne se transforme en String[] et est ajoutée à la liste.
      *
      * @param file Fichier à convertir
-     * @return List<String [ ]>
+     * @return List of String []
      */
     List<String[]> csvToArray(File file) {
         if (file.exists() && file.getName().startsWith("StuckWin")) {
@@ -728,9 +728,11 @@ public class StuckWin {
                     jeu.runGame(jeu, 2);
                     break;
                 case 3:
-                    if (!args[1].isBlank()) {
+                    if (args.length >= 2 && !args[1].isBlank()) {
                         File fileToPlay = new File(args[1]);
                         jeu.csvFilePlay(fileToPlay);
+                    } else {
+                        System.out.println("Veuillez spécifier un fichier trace à jouer.");
                     }
                     break;
                 default:
